@@ -1,5 +1,8 @@
 package com.dream.study.javase;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by huzejun
  * on 2020/11/9 0:59
@@ -37,12 +40,29 @@ public class TwoSumDemo {
         return null;
     }
 
+    public static int[] twoSum2(int[] nums, int target) {
+
+        Map<Integer,Integer> map = new HashMap<>();
+
+        for (int i = 0; i < nums.length; i++) {
+            int partenerNumber = target - nums[i];
+            if (map.containsKey(partenerNumber)){
+                return new int[]{map.get(partenerNumber),i};
+            }
+            map.put(nums[i],i);
+        }
+
+        //map  k值  v下标
+        //     2    i
+        return null;
+    }
+
     public static void main(String[] args) {
 
         int[] nums = new int[]{2, 7, 11, 15};
-        int target = 22;
+        int target = 9;
 
-        int[] myIndex = twoSum(nums,target);
+        int[] myIndex = twoSum2(nums,target);
 
         for (int element : myIndex) {
             System.out.println(element);
