@@ -1,5 +1,8 @@
 package com.dream.study.juc;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Created by huzejun
  * on 2020/11/10 21:27
@@ -13,7 +16,7 @@ public class ReEnterLockDemo {
 
     static Object objectLockA = new Object();
 
-    public static void m1(){
+/*    public static void m1(){
 
         new Thread(() ->{
             synchronized (objectLockA){
@@ -27,10 +30,48 @@ public class ReEnterLockDemo {
             }
         },"t1").start();
 
+    }*/
+
+/*     public synchronized void m1(){
+         System.out.println("========外=======");
+         m2();
+     }
+
+     private void m2(){
+         System.out.println("=====中====");
+         m3();
+     }
+
+    private void m3(){
+        System.out.println("=====内====");
     }
+*/
+    static Lock lock = new ReentrantLock();
 
-    public static void main(String[] args) {
+   public static void main(String[] args) {
 
-        m1();
+       new Thread(() -> {
+           lock.lock();
+           try {
+               System.out.println("=====外层====");
+               lock.lock();
+               try {
+                   System.out.println("=====内层======");
+               }finally {
+                   lock.unlock();
+               }
+           }finally {
+//               lock.unlock();
+           }
+       },"t1").start();
+
+       new Thread(() -> {
+            lock.lock();
+            try {
+                System.out.println(Thread.currentThread().getName()+"\t"+"--调用开始--");
+            }finally {
+                lock.unlock();
+            }
+       },"t2").start();
     }
 }
