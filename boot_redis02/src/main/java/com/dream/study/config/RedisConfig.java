@@ -1,5 +1,7 @@
 package com.dream.study.config;
 
+import org.redisson.Redisson;
+import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -24,5 +26,14 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
     }
+
+    @Bean
+    public Redisson redisson() {
+        Config config = new Config();
+        config.useSingleServer().setAddress("redis://192.168.31.62:6379").setDatabase(0);
+        return (Redisson)Redisson.create(config);
+
+    }
+
 
 }
