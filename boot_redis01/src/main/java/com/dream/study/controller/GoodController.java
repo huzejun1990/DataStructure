@@ -1,19 +1,14 @@
 package com.dream.study.controller;
 
-import com.dream.study.util.RedisUtils;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import redis.clients.jedis.Connection;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Author: huzejun
@@ -30,21 +25,26 @@ public class GoodController {
     @Value("${server.port}")
     private String serverPort;
 
+    @Autowired
+    private Redisson redisson;
+
     @GetMapping("/buy_goods")
     public String buy_Goods() throws Exception {
 
         String value = UUID.randomUUID().toString() + Thread.currentThread().getName();
 
+        RLock redissonLock = redisson.getLock(REDIS_LOCK);
+        redissonLock.lock();
+
         try {
-            Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(REDIS_LOCK,value,10L,TimeUnit.SECONDS);
-//                    .setIfAbsent(REDIS_LOCK, value);//setnx
+/*            Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(REDIS_LOCK,value,10L,TimeUnit.SECONDS);
 
             if (flag) {
                 stringRedisTemplate.expire(REDIS_LOCK,10L, TimeUnit.SECONDS);
             }
             if (!flag) {
                 return "抢锁失败，请再次重试！";
-            }
+            }*/
 
             String result = stringRedisTemplate.opsForValue().get("goods:001");// get key == 看看库存的数量够不够
             int goodNumber = result == null ? 0 : Integer.parseInt(result);
@@ -61,6 +61,11 @@ public class GoodController {
             }
             return "商品已经售完/活动结束/调用超时，欢迎下次光临" + "\t 服务提供端口 " + serverPort;
         } finally {
+            if (redissonLock.isLocked()){
+                if (redissonLock.isHeldByCurrentThread()){
+                    redissonLock.unlock();
+                }
+            }
 /*            if (stringRedisTemplate.opsForValue().get(REDIS_LOCK).equalsIgnoreCase(value)){
 
                 stringRedisTemplate.delete(REDIS_LOCK);
@@ -80,7 +85,8 @@ public class GoodController {
              stringRedisTemplate.unwatch();
              break;
          }*/
-            Jedis jedis = RedisUtils.getJedis();
+
+/*            Jedis jedis = RedisUtils.getJedis();
 
            String script = "if redis.call(\"get\",KEYS[1]) == ARGV[1]\n" +
                    "then\n" +
@@ -99,10 +105,11 @@ public class GoodController {
                 if (null != jedis){
                     jedis.close();
                 }
-            }
+            }*/
 
 
         }
+
     }
 
 

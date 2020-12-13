@@ -1,5 +1,7 @@
 package com.dream.study.config;
 
+import org.redisson.Redisson;
+import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -17,8 +19,8 @@ import java.io.Serializable;
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Serializable> redisTemplate(LettuceConnectionFactory connectionFactory){
-        RedisTemplate<String,Serializable> redisTemplate = new RedisTemplate<>();
+    public RedisTemplate<String, Serializable> redisTemplate(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, Serializable> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
 
         redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -26,6 +28,13 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    @Bean
+    public Redisson redisson() {
+        Config config = new Config();
+        config.useSingleServer().setAddress("redis://192.168.31.62:6379").setDatabase(0);
+        return (Redisson)Redisson.create(config);
+
+    }
 
     /**
      * 保证不是序列化后的乱码配置
